@@ -1,17 +1,19 @@
-# Aurora Finance — Flutter Android MVP
+# Aurora Finance — Flutter Android MVP 0.2
 
-A real, offline-first **manual** personal finance application inspired by the supplied dark fintech reference. The background mesh gradients move on a 42-second loop.
+A real, offline-first **manual** personal finance application. Version 0.2 closely follows the supplied HTML prototype: compact dark surfaces, a large multicolor balance card, a clean analytics grid, and the gradient amount editor. The layered aurora motion follows a **52-second loop**; the surrounding header has a subtler **64-second glow**.
 
 ## Included features
 
-- Dark home screen with animated gradient balance card
+- Dark dashboard with a layered, slow-moving gradient balance card and softly animated top-of-screen glow
+- Visual design aligned with the HTML reference: compact action tiles, floating bottom navigation, transaction rows, segmented analytics, and dark form fields
+- Rebuilt transaction editor: gradient amount panel, expense/income selector, category/date/description fields, bottom cancel/clear-or-delete/save actions
 - Add income and expenses; edit and delete entries
 - Persistent local SQLite storage (survives application restarts)
 - Opening balance; calculated ledger balance
 - Weekly and monthly analytics (actual amounts by category and period)
 - Transaction history with income/expense filters
 - USD, EUR, AMD ledger currency; switching is disabled when the ledger contains money, preventing accidental relabeling
-- Empty ledger on first install — no fictional sample funds or transactions
+- Empty ledger on first install. An **optional Preview design** button shows clearly labeled, in-memory example amounts; those samples are never saved to the ledger and disappear when adding a real transaction
 - Local-data reset with a destructive-action confirmation
 - No login, internet permission, backend, or external service used by the app itself
 
@@ -56,9 +58,18 @@ A real, offline-first **manual** personal finance application inspired by the su
 
 - `lib/main.dart` — app bootstrap, theme, finance controller
 - `lib/data/ledger.dart` — SQLite persistence, data model, currency math
-- `lib/ui/aurora_card.dart` — smoothly animated custom gradient canvas
+- `lib/ui/aurora_card.dart` — separately animated, multicolor card canvas and subtle header ambient glow
+- `lib/ui/demo_preview.dart` — explicit visual-only sample data, never inserted into SQLite
 - `lib/ui/screens.dart` — home, analytics, transaction history, settings, entry editor
 - `test/ledger_math_test.dart` — ledger arithmetic tests
+- `test/demo_preview_test.dart` — preview data checks
+- `test/aurora_card_test.dart` — animated card child stability test
+
+## Design fidelity notes
+
+The **HTML prototype is the visual reference**, not a production bank statement. This Flutter version uses similar spacing and proportions while adapting to Android safe areas, screen sizes and keyboard interactions. `lib/ui/aurora_card.dart` contains the color composition; the animation affects only the painted background, not labels. The app honors the operating system’s reduced-animation setting on startup.
+
+The design preview is off by default. For filled example screens without mixing fake records into your data, open Home → **Preview design**. The sample balance and transactions are explicitly marked; analytics derive from the same in-memory examples. Exit preview or start entering real transactions to return to the real ledger.
 
 ## MVP constraints and suggested next steps
 
@@ -75,3 +86,9 @@ This source bundle was prepared without the Flutter SDK installed in the authori
 ## Build APK without installing Flutter locally
 
 The project includes an automated GitHub Actions workflow at `.github/workflows/build-android-apk.yml`, and a Windows PowerShell script `build-apk-windows.ps1`. Follow **[BUILD_APK.md](BUILD_APK.md)** to generate and download an installable APK. The workflow uses the stable Flutter channel and should be regarded as an unverified build recipe until GitHub Actions runs it successfully.
+
+## Visual reference included
+
+`design_reference/aurora_banking_prototype.html` contains the interactive HTML
+prototype used as the design comparison target. Open it in a browser to compare
+spacing, composition and gradient motion against a device build.

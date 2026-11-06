@@ -5,7 +5,7 @@ This source ZIP is **not an APK**. An APK must be compiled by Flutter with the A
 ## Option 1: GitHub Actions (no Android Studio needed)
 
 1. Unzip `aurora_finance_flutter_mvp_with_build.zip` so you have the `aurora_finance_flutter` project folder.
-2. Create a **public** empty GitHub repository at https://github.com/new (avoid checking "Initialize this repository with README").
+2. Create a **private** empty GitHub repository at https://github.com/new (avoid checking "Initialize this repository with README").
 3. Upload/push the **contents** of the `aurora_finance_flutter` folder to the repository, **including the hidden `.github` folder**. You can use GitHub Desktop or Git. With Git installed, open a terminal inside the project folder and run:
 
    ```bash

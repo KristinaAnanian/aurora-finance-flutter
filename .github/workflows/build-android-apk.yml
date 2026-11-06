@@ -3,7 +3,7 @@ name: Build Android APK
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [main, aurora-flutter-v0-2]
 
 permissions:
   contents: read
@@ -36,8 +36,11 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Test ledger calculations
-        run: flutter test test/ledger_math_test.dart
+      - name: Check Dart and Flutter code
+        run: flutter analyze
+
+      - name: Run app tests
+        run: flutter test
 
       - name: Build APK (release, test signing)
         run: flutter build apk --release
@@ -45,7 +48,7 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: aurora-finance-android-apk
+          name: aurora-finance-v0-2-apk
           path: build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
           retention-days: 14

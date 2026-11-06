@@ -1,13 +1,14 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
-/// Slow, continuous loop with moving radial gradients. This repaints only the
-/// card's clipped canvas, not the labels and controls drawn over it.
+/// Color field tuned to the original HTML prototype. The animated paint sits
+/// behind its child, so text/buttons never translate or blur with the colors.
+/// All animation is local to the card and requires no network or image assets.
 class AuroraCard extends StatefulWidget {
   const AuroraCard({
     required this.child,
-    this.height = 164,
-    this.radius = 18,
+    this.height = 174,
+    this.radius = 14,
     super.key,
   });
 
@@ -19,7 +20,8 @@ class AuroraCard extends StatefulWidget {
   State<AuroraCard> createState() => _AuroraCardState();
 }
 
-class _AuroraCardState extends State<AuroraCard> with SingleTickerProviderStateMixin {
+class _AuroraCardState extends State<AuroraCard>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _motion;
 
   @override
@@ -27,9 +29,10 @@ class _AuroraCardState extends State<AuroraCard> with SingleTickerProviderStateM
     super.initState();
     _motion = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 42),
+      duration: const Duration(seconds: 52),
     );
-    if (!WidgetsBinding.instance.platformDispatcher.accessibilityFeatures.disableAnimations) {
+    if (!WidgetsBinding
+        .instance.platformDispatcher.accessibilityFeatures.disableAnimations) {
       _motion.repeat();
     }
   }
@@ -49,7 +52,9 @@ class _AuroraCardState extends State<AuroraCard> with SingleTickerProviderStateM
           child: Stack(
             fit: StackFit.expand,
             children: [
-              CustomPaint(painter: AuroraPainter(_motion)),
+              RepaintBoundary(
+                child: CustomPaint(painter: AuroraPainter(_motion)),
+              ),
               widget.child,
             ],
           ),
@@ -57,44 +62,152 @@ class _AuroraCardState extends State<AuroraCard> with SingleTickerProviderStateM
       );
 }
 
+/// Soft elliptical color pools rather than a single linear gradient.
+/// The glows move along different slow paths to keep the effect organic.
 class AuroraPainter extends CustomPainter {
   AuroraPainter(this.motion) : super(repaint: motion);
   final Animation<double> motion;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final full = Offset.zero & size;
-    final base = Paint()
-      ..shader = const LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [Color(0xFFA6B0EA), Color(0xFF8997D9), Color(0xFFC5B1D5)],
-      ).createShader(full);
-    canvas.drawRect(full, base);
-    final t = motion.value * math.pi * 2;
-    _blob(canvas, size, const Color(0xFFA5CBBA), .86, .19, .25, .13, t, 0.0);
-    _blob(canvas, size, const Color(0xFF5E75E8), .23, .65, .20, .17, t, 1.7);
-    _blob(canvas, size, const Color(0xFFEBA58A), .63, .75, .19, .13, t, 2.4);
-    _blob(canvas, size, const Color(0xFFCEAFE7), .45, .34, .15, .18, t, 3.5);
-    _blob(canvas, size, const Color(0xFF79A0C1), .92, .78, .14, .15, t, 4.4);
-    _blob(canvas, size, const Color(0xFFCCD6FF), .14, .15, .16, .12, t, 5.2);
+    final rect = Offset.zero & size;
+    canvas.drawRect(rect, Paint()..color = const Color(0xFFA6A9DC));
+    final t = motion.value * 2 * math.pi;
+
+    _glow(canvas, size,
+        color: const Color(0xFF4863C7),
+        x: .08, y: .83, rx: .65, ry: .79,
+        mx: .09, my: .12, t: t, phase: .1, alpha: .97);
+    _glow(canvas, size,
+        color: const Color(0xFF7F9BEA),
+        x: .13, y: .20, rx: .78, ry: .71,
+        mx: .14, my: .07, t: t, phase: 1.3, alpha: .96);
+    _glow(canvas, size,
+        color: const Color(0xFF80BEA9),
+        x: .93, y: .07, rx: .71, ry: .69,
+        mx: .13, my: .14, t: t, phase: 2.4, alpha: .93);
+    _glow(canvas, size,
+        color: const Color(0xFFF2A27D),
+        x: .61, y: .83, rx: .57, ry: .73,
+        mx: .16, my: .12, t: t, phase: 4.1, alpha: .97);
+    _glow(canvas, size,
+        color: const Color(0xFFC6A1D7),
+        x: .54, y: .35, rx: .58, ry: .68,
+        mx: .13, my: .09, t: t, phase: 5.1, alpha: .82);
+    _glow(canvas, size,
+        color: const Color(0xFF3978A1),
+        x: .94, y: .70, rx: .47, ry: .78,
+        mx: .08, my: .14, t: t, phase: 3.2, alpha: .54);
+
+    canvas.drawRect(
+      rect,
+      Paint()
+        ..shader = const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0x12FFFFFF), Color(0x00191840), Color(0x153F3B76)],
+          stops: [0, .44, 1],
+        ).createShader(rect),
+    );
   }
 
-  void _blob(Canvas canvas, Size size, Color color, double x, double y,
-      double motionX, double motionY, double t, double phase) {
-    final center = Offset(
-      size.width * (x + motionX * math.sin(t + phase)),
-      size.height * (y + motionY * math.cos(t + phase)),
-    );
-    final radius = size.longestSide * .64;
-    final paint = Paint()
-      ..shader = RadialGradient(
-        colors: [color.withValues(alpha: .9), color.withValues(alpha: .38), color.withValues(alpha: 0)],
-        stops: const [0, .42, 1],
-      ).createShader(Rect.fromCircle(center: center, radius: radius));
-    canvas.drawCircle(center, radius, paint);
+  void _glow(
+    Canvas canvas,
+    Size size, {
+    required Color color,
+    required double x,
+    required double y,
+    required double rx,
+    required double ry,
+    required double mx,
+    required double my,
+    required double t,
+    required double phase,
+    required double alpha,
+  }) {
+    final cx = size.width * (x + mx * math.sin(t + phase));
+    final cy = size.height * (y + my * math.cos(t * .85 + phase));
+    canvas.save();
+    canvas.translate(cx, cy);
+    canvas.scale(size.width * rx, size.height * ry);
+    final shader = RadialGradient(
+      stops: const [0, .26, .57, .83, 1],
+      colors: [
+        color.withValues(alpha: alpha),
+        color.withValues(alpha: alpha * .93),
+        color.withValues(alpha: alpha * .60),
+        color.withValues(alpha: alpha * .15),
+        color.withValues(alpha: 0),
+      ],
+    ).createShader(Rect.fromCircle(center: Offset.zero, radius: 1));
+    canvas.drawCircle(Offset.zero, 1, Paint()..shader = shader);
+    canvas.restore();
   }
 
   @override
-  bool shouldRepaint(covariant AuroraPainter oldDelegate) => oldDelegate.motion != motion;
+  bool shouldRepaint(covariant AuroraPainter oldDelegate) =>
+      oldDelegate.motion != motion;
+}
+
+/// A subtle animated aurora beneath the black header. Kept deliberately dark
+/// to preserve the reference's visual hierarchy and text readability.
+class AuroraHeaderGlow extends StatefulWidget {
+  const AuroraHeaderGlow({super.key});
+
+  @override
+  State<AuroraHeaderGlow> createState() => _AuroraHeaderGlowState();
+}
+
+class _AuroraHeaderGlowState extends State<AuroraHeaderGlow>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 64),
+    );
+    if (!WidgetsBinding
+        .instance.platformDispatcher.accessibilityFeatures.disableAnimations) {
+      _controller.repeat();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => IgnorePointer(
+        child: RepaintBoundary(
+          child: CustomPaint(painter: _HeaderPainter(_controller)),
+        ),
+      );
+}
+
+class _HeaderPainter extends CustomPainter {
+  _HeaderPainter(this.motion) : super(repaint: motion);
+  final Animation<double> motion;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final t = 2 * math.pi * motion.value;
+    final fade = Paint()
+      ..shader = RadialGradient(
+        colors: const [Color(0x244759B0), Color(0x1052B9A1), Color(0x00000000)],
+        stops: const [0, .45, 1],
+      ).createShader(Rect.fromCircle(
+        center: Offset(size.width * (.76 + .11 * math.sin(t)), size.height * .65),
+        radius: size.width * .73,
+      ));
+    canvas.drawRect(Offset.zero & size, fade);
+  }
+
+  @override
+  bool shouldRepaint(covariant _HeaderPainter oldDelegate) =>
+      oldDelegate.motion != motion;
 }

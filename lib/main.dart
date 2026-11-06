@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'data/ledger.dart';
 import 'ui/screens.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    statusBarIconBrightness: Brightness.light,
+    systemNavigationBarColor: Color(0xFF0C0C0D),
+    systemNavigationBarIconBrightness: Brightness.light,
+  ));
   runApp(const AuroraFinanceApp());
 }
 
@@ -42,6 +49,9 @@ class _AuroraFinanceAppState extends State<AuroraFinanceApp> {
             onPrimary: Color(0xFF111111),
           ),
           useMaterial3: true,
+          fontFamily: 'sans-serif',
+          splashColor: Colors.white10,
+          highlightColor: Colors.white10,
           inputDecorationTheme: InputDecorationTheme(
             filled: true,
             fillColor: const Color(0xFF242426),
